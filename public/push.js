@@ -61,7 +61,7 @@ NodePush = function(){
         }
     }
 
-    var host = 'pushserver.duostack.com';
+    var host = 'pushserver.duostack.net';
     function setHost(newHost){
         host = newHost
     }
