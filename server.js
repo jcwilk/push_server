@@ -1,11 +1,85 @@
-var http = require('http');
+var util = require('util'),
+    inspect = util.inspect,
+    logInspect = function(item){console.log(util.inspect(item))},
+    url = require('url'),
+    querystring = require('querystring'),
+    fs = require('fs'),
+    paperboy = require('./lib/paperboy'),
+    path = require('path'),
+    publicRoot = path.join(path.dirname(__filename), 'public');
 
-http.createServer(function (req, res) {
-    var respond = function(){
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('Hello World from Duostack!\n');
-    };
-    setTimeout(respond,5000);
-}).listen(3000, "127.0.0.1");
+function channelFactory(){
+    var callbacks = [];
+    var messages = [];
 
-console.log('Server running at http://127.0.0.1:3000/');
+    function textSince(start){
+        return messages.slice(start+1);
+                //.map(function(data){return data.text})
+                //.join('\n')
+    }
+
+    function processCallback(callback){
+        if(callback.lastMessage+1 >= messages.length){
+            callbacks.push(callback)
+        } else {
+            callback(textSince(callback.lastMessage))
+        }
+    }
+
+    function read(sequence, callback){
+        callback.lastMessage = sequence;
+        processCallback(callback);
+    }
+
+    function send(data){
+        messages.push(data);
+        var callbacksToProcess = callbacks;
+        callbacks = [];
+        while(callbacksToProcess.length > 0){
+            var callback = callbacksToProcess.shift();
+            processCallback(callback);
+        }
+    }
+    
+    return {read: read, send: send}
+}
+
+function channelManagerFactory(){
+    var channels = {};
+
+    return function(channelName){
+        var c = channels[channelName];
+        if(c) return c;
+
+        return (channels[channelName] = channelFactory());
+    }
+}
+
+function main(){
+    var channelMan = channelManagerFactory();
+
+    var server = require('./lib/node-router').getServer();
+
+    server.get(new RegExp("^/m/([^?]*)$"),function(req,res,match){
+        var lastMessage = parseInt(url.parse(req.url,true).query.s || '-1');
+        logInspect(url.parse(req.url,true));
+        channelMan(match).read(lastMessage, function(data){
+            res.simpleText(200,JSON.stringify(data));
+        })
+    });
+
+    server.post(new RegExp("^/m/([^?]*)$"),function(req,res,match,data){
+        channelMan(match).send(data);
+        res.simpleJson(200,data);
+    },'json');
+
+    //var pushJs = fs.readFileSync('./public/push.js','utf8');
+    server.get('/push.js',function(req,res){
+        paperboy.deliver(publicRoot,req,res)
+    });
+
+    server.listen(3000);
+
+    //require('http').createServer(function (req, res) {logInspect(req); res.writeHead(200, {'Content-Type': 'text/plain'}); res.end('');}).listen(3000);
+}
+main();
