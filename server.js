@@ -14,8 +14,6 @@ function channelFactory(){
 
     function textSince(start){
         return messages.slice(start+1);
-                //.map(function(data){return data.text})
-                //.join('\n')
     }
 
     function processCallback(callback){
@@ -73,13 +71,10 @@ function main(){
         res.simpleJson(200,data);
     },'json');
 
-    //var pushJs = fs.readFileSync('./public/push.js','utf8');
     server.get('/push.js',function(req,res){
         paperboy.deliver(publicRoot,req,res)
     });
 
     server.listen(3000);
-
-    //require('http').createServer(function (req, res) {logInspect(req); res.writeHead(200, {'Content-Type': 'text/plain'}); res.end('');}).listen(3000);
 }
 main();
