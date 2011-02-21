@@ -21,12 +21,10 @@ NodePush = function(){
                 var validJSON = false;
                 if (typeof data == "string") {
                     try {validJSON = JSON.parse(data);} catch (e) {
-                        console.log('unable to parse: '+data)
+                        console.warn('unable to parse: '+data)
                     }
                 } else {
-                    validJSON = JSON.parse(JSON.stringify(data));
-                    window.console && console.warn(
-                    'response data was not a JSON string');
+                    validJSON = JSON.parse(JSON.stringify(data))
                 }
                 if (validJSON) {
                     callback(validJSON);
@@ -37,9 +35,15 @@ NodePush = function(){
         }
     };
 
-    function pollerFactory(channel, callback){
-        var url = 'http://pushserver.duostack.com/m/'+channel+'.json?callback=JSONPCallback'
-        jsonp.fetch(url,callback)
+    function pollerFactory(channel,callback,sequence){
+        var url = 'http://'+host+'/m/'+channel+'.json?';
+        if(sequence !== undefined) url+= 's='+sequence+'&';
+        url+= 'callback=JSONPCallback';
+        jsonp.fetch(url,function(json){
+            console.log(json);
+            callback(json.data);
+            pollerFactory(channel,callback,json.sequence)
+        })
     }
 
     function pollerManagerFactory(){
@@ -57,5 +61,11 @@ NodePush = function(){
         }
     }
 
-    return {bind: binderFactory()}
-};
+    var host = 'pushserver.duostack.com';
+    function setHost(newHost){
+        host = newHost
+    }
+
+    return {bind: binderFactory(),
+            setHost: setHost}
+}();

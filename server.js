@@ -12,20 +12,29 @@ function channelFactory(){
     var callbacks = [];
     var messages = [];
 
-    function textSince(start){
+    function messagesSince(start){
         return messages.slice(start+1);
     }
 
+    function currentSequence(){
+        return messages.length-1;
+    }
+
     function processCallback(callback){
-        if(callback.lastMessage+1 >= messages.length){
+        if(callback.sequence == currentSequence()){
             callbacks.push(callback)
         } else {
-            callback(textSince(callback.lastMessage))
+            callback({data: messagesSince(callback.sequence),
+                      sequence: currentSequence()})
         }
     }
 
     function read(sequence, callback){
-        callback.lastMessage = sequence;
+        if(sequence === undefined || sequence > currentSequence()){
+            callback.sequence = -1
+        } else {
+            callback.sequence = sequence
+        }
         processCallback(callback);
     }
 
@@ -58,15 +67,17 @@ function main(){
 
     var server = require('./lib/node-router').getServer();
 
-    server.get(new RegExp("^/m/([^?]*)$"),function(req,res,match){
-        var lastMessage = parseInt(url.parse(req.url,true).query.s || '-1');
-        logInspect(url.parse(req.url,true));
+    server.get(new RegExp("^/m/([^?]*).json$"),function(req,res,match){
+        var query = url.parse(req.url,true).query;
+        var lastMessage = query.s;
+        if(lastMessage !== undefined) lastMessage = parseInt(lastMessage);
+        var callback = query.callback;
         channelMan(match).read(lastMessage, function(data){
-            res.simpleText(200,JSON.stringify(data));
+            res.simpleText(200,callback+'('+JSON.stringify(data)+')')
         })
     });
 
-    server.post(new RegExp("^/m/([^?]*)$"),function(req,res,match,data){
+    server.post(new RegExp("^/m/([^?]*).json$"),function(req,res,match,data){
         channelMan(match).send(data);
         res.simpleJson(200,data);
     },'json');
