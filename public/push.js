@@ -38,12 +38,19 @@ NodePush = function(){
     function pollerFactory(channel,callback,sequence){
         var url = 'http://'+host+'/m/'+channel+'.json?';
         if(sequence !== undefined) url+= 's='+sequence+'&';
-        url+= 'callback=JSONPCallback';
-        jsonp.fetch(url,function(json){
-            //console.log('returning from '+channel+' with: '+JSON.stringify(json));
-            pollerFactory(channel,callback,json.sequence);
-            callback(json.data);
-        })
+        url+= 'callback=_jqjsp';
+        $.jsonp({
+            url: url,
+            success: function(json){
+                callback(json.data);
+                pollerFactory(channel,callback,json.sequence);
+            },
+            error: function(){
+                pollerFactory(channel,callback,sequence);
+            }
+
+        });
+        //jsonp.fetch(url,)
     }
 
     function pollerManagerFactory(){
