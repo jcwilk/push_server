@@ -21,7 +21,7 @@ NodePush = function(){
                 var validJSON = false;
                 if (typeof data == "string") {
                     try {validJSON = JSON.parse(data);} catch (e) {
-                        console.warn('unable to parse: '+data)
+                        //console.warn('unable to parse: '+data)
                     }
                 } else {
                     validJSON = JSON.parse(JSON.stringify(data))
@@ -40,7 +40,7 @@ NodePush = function(){
         if(sequence !== undefined) url+= 's='+sequence+'&';
         url+= 'callback=JSONPCallback';
         jsonp.fetch(url,function(json){
-            console.log('returning from '+channel+' with: '+JSON.stringify(json));
+            //console.log('returning from '+channel+' with: '+JSON.stringify(json));
             pollerFactory(channel,callback,json.sequence);
             callback(json.data);
         })
