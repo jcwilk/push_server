@@ -13,7 +13,11 @@ function channelFactory(){
     var messages = [];
 
     function messagesSince(start){
-        return messages.slice(start+1);
+        var mes = messages.slice(start+1);
+        logInspect(messages);
+        logInspect('------------------------------');
+        logInspect(mes);
+        return mes;
     }
 
     function currentSequence(){

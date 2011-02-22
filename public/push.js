@@ -40,9 +40,9 @@ NodePush = function(){
         if(sequence !== undefined) url+= 's='+sequence+'&';
         url+= 'callback=JSONPCallback';
         jsonp.fetch(url,function(json){
-            console.log(json);
+            console.log('returning from '+channel+' with: '+JSON.stringify(json));
+            pollerFactory(channel,callback,json.sequence);
             callback(json.data);
-            pollerFactory(channel,callback,json.sequence)
         })
     }
 
