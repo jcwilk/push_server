@@ -14,9 +14,9 @@ function channelFactory(){
 
     function messagesSince(start){
         var mes = messages.slice(start+1);
-        logInspect(messages);
-        logInspect('------------------------------');
-        logInspect(mes);
+//        logInspect(messages);
+//        logInspect('------------------------------');
+//        logInspect(mes);
         return mes;
     }
 
