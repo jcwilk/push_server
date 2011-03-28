@@ -1,6 +1,6 @@
 NodePush = function(){
     function pollerFactory(channel,callback,sequence){
-        var url = 'http://'+host+'/m/'+channel+'.json?';
+        var url = host+'/m/'+channel+'.json?';
         if(sequence !== undefined) url+= 's='+sequence+'&';
         url+= 'callback=_jqjsp';
         $.jsonp({
@@ -31,7 +31,7 @@ NodePush = function(){
         }
     }
 
-    var host = 'pushserver.duostack.net';
+    var host = 'https://pushserver.duostack.net';
     function setHost(newHost){
         host = newHost
     }
