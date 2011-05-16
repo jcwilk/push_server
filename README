@@ -1,1 +1,16 @@
 Push server in Node.js
+
+The purpose of this project is to make a very lightweight, flexible, easy to understand messaging server for getting data broadcasted
+to in-browser flash-free websockets-free javascript-only clients in real time using long-poll.
+
+The advantage of this approach rather than using flash or websockets is that it maximizes your compatibility, makes all of your clients
+behave the same way, and if your application can be optimized for the slightly jerky behavior of long poll it can be a very good option.
+
+The way it works is the push.js file which is used by the client page is passed via javascripts some channels to listen on.
+For each of these channels, a connection is made to /m/channel-name.json?s=50 with a GET.
+If there is new data on that channel since sequence 50, it is immediately returned.
+If sequence 50 indicates the client is up to date with the most current data, then the connection is added to the listener pool and the client waits for the request to return
+
+Whenever the server wants to broadcast messages...
+The application server posts data to /m/channel-name.json
+The push server appends the data to the channel and triggers any listener's callbacks which are waiting for data on that channel
